@@ -13,6 +13,12 @@ cpath = os.path.join(PROFILE_HOME, "collection.anki2")
 col = Collection(cpath, log=True) # Entry point to the API
 
 # Use the available methods to list the notes
-for cid in col.findNotes('"deck:02 NihongoShark.com: My Vocabulary"'): 
+for cid in col.findNotes('deck:GenTest'): 
     note = col.getNote(cid)
-    print(note.fields[0], note.fields[1], note.fields[2])
+    print(note.fields[0], note.fields[1])
+    print(note.fields[2])
+    print(note.fields[3])
+    print(note.fields[4])
+    print(note.fields[5])
+    print(note.fields[6])
+    print('-'*40)
