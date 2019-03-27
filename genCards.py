@@ -7,6 +7,8 @@ import sqlite3
 from sqlite3 import Error
 from gtts import gTTS
 
+OVERWRITE_AUDIO = 0
+
 def create_connection(db_file):
     """ create a database connection to a SQLite database """
     try:
@@ -48,6 +50,7 @@ class Word:
 
     def set_english(self):
         self.english = ''
+        self.isVerb = 0
         results = jmd.lookup(self.japanese)
         for entry in results.entries:
             #print(entry)
@@ -57,11 +60,14 @@ class Word:
                     for idx, s in enumerate(entry.senses):
                         if idx > 0:
                             self.english += '; '
+                        if (str(s).find('Godan verb') != -1) or (str(s).find('Ichidan verb') != -1):
+                            self.isVerb = 1
                         self.english += remGrammar(str(s))
                         idx += 1
 
     def set_english_from_kana(self):
         self.english = ''
+        self.isVerb = 0
         results = jmd.lookup(self.japanese)
         for entry in results.entries:
             #print(entry)
@@ -73,38 +79,68 @@ class Word:
                     for idx, s in enumerate(entry.senses):
                         if idx > 0:
                             self.english += '; '
+                        if str(s).find('verb') != -1:
+                            self.isVerb = 1
                         self.english += remGrammar(str(s))
                         idx += 1
 
     def set_example(self):
         cur = conn.cursor()
-        cur.execute("SELECT * FROM sentences WHERE japanese LIKE ?", ('%'+self.japanese+'%',))
+        sql = "SELECT * FROM sentences WHERE LENGTH(japanese) <= 35 AND japanese LIKE ?"
+        cur.execute(sql, ('%'+self.japanese+'%',))
         rows = cur.fetchall()
-    
         try: 
             self.exJap = rows[0][1]
             self.exEng = rows[0][2]
         except:
-            cur.execute("SELECT * FROM sentences WHERE japanese LIKE ?", ('%'+self.reading+'%',))
-            rows = cur.fetchall()
-            try:
+            if(self.isVerb):
+                cur.execute(sql, ('%'+self.japanese[:-1]+'%',))
+                rows = cur.fetchall()
+                print("No example sentence for", self.japanese, "- trying", self.japanese[:-1])
+                print()
+                try:
+                    self.exJap = rows[0][1]
+                    self.exEng = rows[0][2]
+                except:
+                    cur.execute(sql, ('%'+self.reading+'%',))
+                    rows = cur.fetchall()
+                    print("No example sentence for", self.japanese[:-1], "- trying", self.reading)
+                    print()
+                    try:
+                        self.exJap = rows[0][1]
+                        self.exEng = rows[0][2]
+                    except:
+                        print("No example sentence for", self.reading)
+                        print()
+                        self.exJap = ''
+                        self.exEng = ''
+            else:
+                cur.execute(sql, ('%'+self.reading+'%',))
+                rows = cur.fetchall()
                 print("No example sentence for", self.japanese, "- trying", self.reading)
                 print()
-                self.exJap = rows[0][1]
-                self.exEng = rows[0][2]
-            except:
-                print("No example sentence for", self.reading)
-                print()
+                try:
+                    self.exJap = rows[0][1]
+                    self.exEng = rows[0][2]
+                except:
+                    print("No example sentence for", self.reading)
+                    print()
+                    self.exJap = ''
+                    self.exEng = ''
 
     def set_audio(self):
         self.audio = self.japanese+'.mp3'
         exists = os.path.isfile(PROFILE_HOME+'/collection.media/'+self.audio)
-        if exists:
+        if exists and not OVERWRITE_AUDIO:
             print("Audio file", self.audio, "already exists - no audio generated")
             print()
         else:
-            tts = gTTS(self.exJap, "ja") 
-            tts.save(PROFILE_HOME+'/collection.media/'+self.audio)
+            if self.exJap:
+                tts = gTTS(self.exJap, "ja") 
+                tts.save(PROFILE_HOME+'/collection.media/'+self.audio)
+            else:
+                tts = gTTS(self.japanese, "ja") 
+                tts.save(PROFILE_HOME+'/collection.media/'+self.audio)
         self.audio = '[sound:' + self.audio + ']'
 
     def set_notes(self, notes):
