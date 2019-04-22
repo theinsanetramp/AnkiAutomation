@@ -7,7 +7,7 @@ sentences.csv
 
 TODO:
  - Make overwrite audio files a command line option
- - Proper verb conjugation
  - Clean up and comment
+ - い verb conjugation
  - Better definition scrubbing?
  - Partitioning of longer sentences?

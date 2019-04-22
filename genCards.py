@@ -7,6 +7,7 @@ import sqlite3
 from sqlite3 import Error
 from gtts import gTTS
 
+NO_ANKI = 0
 OVERWRITE_AUDIO = 0
 
 def create_connection(db_file):
@@ -53,36 +54,36 @@ class Word:
         self.isVerb = 0
         results = jmd.lookup(self.japanese)
         for entry in results.entries:
-            #print(entry)
-            #print()
+            # print(entry)
+            # print()
             for self.kana in entry.kana_forms:
                 if self.reading == str(self.kana):
+                    if self.english:
+                        self.english += '; '
                     for idx, s in enumerate(entry.senses):
                         if idx > 0:
                             self.english += '; '
                         if (str(s).find('Godan verb') != -1) or (str(s).find('Ichidan verb') != -1):
                             self.isVerb = 1
                         self.english += remGrammar(str(s))
-                        idx += 1
 
     def set_english_from_kana(self):
         self.english = ''
         self.isVerb = 0
         results = jmd.lookup(self.japanese)
         for entry in results.entries:
-            #print(entry)
-            #print()
+            # print(entry)
+            # print()
             for noEntries, self.kana in enumerate(entry.kana_forms):
                 if self.japanese == str(self.kana):
-                    if noEntries > 0:
+                    if self.english:
                         self.english += '; '
                     for idx, s in enumerate(entry.senses):
-                        if idx > 0:
+                        if idx > 0 and self.english:
                             self.english += '; '
-                        if str(s).find('verb') != -1:
+                        if str(s).find('verb') != -1 and str(s).find('verb suru') == -1 and str(s).find('adverb') == -1:
                             self.isVerb = 1
                         self.english += remGrammar(str(s))
-                        idx += 1
 
     def set_example(self):
         cur = conn.cursor()
@@ -110,23 +111,38 @@ class Word:
                         self.exJap = rows[0][1]
                         self.exEng = rows[0][2]
                     except:
+                        cur.execute(sql, ('%'+self.reading[:-1]+'%',))
+                        rows = cur.fetchall()
+                        print("No example sentence for", self.reading, "- trying", self.reading[:-1])
+                        print()
+                        try:
+                            self.exJap = rows[0][1]
+                            self.exEng = rows[0][2]
+                        except:
+                            print("No example sentence for", self.reading[:-1])
+                            print()
+                            self.exJap = ''
+                            self.exEng = ''
+            else:
+                if self.reading:
+                    cur.execute(sql, ('%'+self.reading+'%',))
+                    rows = cur.fetchall()
+                    print("No example sentence for", self.japanese, "- trying", self.reading)
+                    print()
+                    try:
+                        self.exJap = rows[0][1]
+                        self.exEng = rows[0][2]
+                    except:
                         print("No example sentence for", self.reading)
                         print()
                         self.exJap = ''
                         self.exEng = ''
-            else:
-                cur.execute(sql, ('%'+self.reading+'%',))
-                rows = cur.fetchall()
-                print("No example sentence for", self.japanese, "- trying", self.reading)
-                print()
-                try:
-                    self.exJap = rows[0][1]
-                    self.exEng = rows[0][2]
-                except:
-                    print("No example sentence for", self.reading)
+                else:
+                    print("No example sentence for", self.japanese)
                     print()
                     self.exJap = ''
                     self.exEng = ''
+
 
     def set_audio(self):
         self.audio = self.japanese+'.mp3'
@@ -185,45 +201,50 @@ for word in words:
     print(word.audio)
     print('-'*40)
 
-# Load Anki library
-sys.path.append("anki") 
-from anki.storage import Collection
-from anki.sched import Scheduler
+if NO_ANKI:
+    print()
+    print("NO_ANKI = 1")
+    print("0 cards created.")
+else:
+    # Load Anki library
+    sys.path.append("anki") 
+    from anki.storage import Collection
+    from anki.sched import Scheduler
 
-# Define the path to the Anki SQLite collection
-cpath = os.path.join(PROFILE_HOME, "collection.anki2")
+    # Define the path to the Anki SQLite collection
+    cpath = os.path.join(PROFILE_HOME, "collection.anki2")
 
-# Load the Collection
-col = Collection(cpath, log=True) # Entry point to the API
+    # Load the Collection
+    col = Collection(cpath, log=True) # Entry point to the API
 
-# Set the model
-modelBasic = col.models.byName('NihongoShark.com: My Vocabulary')
-col.decks.current()['mid'] = modelBasic['id']
+    # Set the model
+    modelBasic = col.models.byName('NihongoShark.com: My Vocabulary')
+    col.decks.current()['mid'] = modelBasic['id']
 
-# Get the deck
-deck = col.decks.byName("GenTest")
-doneCards = 0
-print()
+    # Get the deck
+    deck = col.decks.byName("GenTest")
+    doneCards = 0
+    print()
 
-for word in words:
-    if not col.findNotes('deck:GenTest '+word.japanese):
-        # Instantiate the new note
-        note = col.newNote()
-        note.model()['did'] = deck['id']
+    for word in words:
+        if not col.findNotes('deck:GenTest '+word.japanese):
+            # Instantiate the new note
+            note = col.newNote()
+            note.model()['did'] = deck['id']
 
-        note.fields[0] = word.japanese 
-        note.fields[1] = word.reading
-        note.fields[2] = word.english
-        note.fields[3] = word.exJap
-        note.fields[4] = word.exEng
-        note.fields[5] = word.firstEnc
-        note.fields[6] = word.audio
+            note.fields[0] = word.japanese 
+            note.fields[1] = word.reading
+            note.fields[2] = word.english
+            note.fields[3] = word.exJap
+            note.fields[4] = word.exEng
+            note.fields[5] = word.firstEnc
+            note.fields[6] = word.audio
 
-        col.addNote(note)
-        doneCards += 1
-    else:
-        print(word.japanese, "already exists in deck - card not loaded")
-        print()
+            col.addNote(note)
+            doneCards += 1
+        else:
+            print(word.japanese, "already exists in deck - card not loaded")
+            print()
 
-print(doneCards, 'cards created.')
-col.save()
+    print(doneCards, 'cards created.')
+    col.save()
