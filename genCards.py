@@ -177,19 +177,19 @@ except:
 with open('newCards.txt') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     line_count = 0
+    new_source = 1
     for row in csv_reader:
-        if line_count == 0:
+        if new_source:
             FE = row[0]
+            new_source = 0
         else:
-            #if row[1]:
+            try:
                 words.append(Word(row[0],row[1],FE))
-            #else:
-            #    print("Searching", row[0], "on Jisho...")
-            #    print()
-            #    webbrowser.open_new_tab('https://jisho.org/search/' + row[0])
+            except:
+                new_source = 1
         line_count += 1
     print()
-    print(f'Processed {line_count-1} words.')
+    print(f'Processed {line_count} lines.')
 
 print('-'*40)
 for word in words:
@@ -227,7 +227,7 @@ else:
     print()
 
     for word in words:
-        if not col.findNotes('deck:GenTest '+word.japanese):
+        if not col.findNotes('deck:GenTest "Target Japanese Word":'+word.japanese):
             # Instantiate the new note
             note = col.newNote()
             note.model()['did'] = deck['id']
