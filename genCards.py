@@ -10,6 +10,8 @@ from gtts import gTTS
 NO_ANKI = 0
 OVERWRITE_AUDIO = 0
 
+PROFILE_HOME = os.path.expanduser("~/.local/share/Anki2/User 1") 
+
 def create_connection(db_file):
     """ create a database connection to a SQLite database """
     try:
@@ -166,7 +168,6 @@ class Word:
 # List of all words
 words = []
 jmd = Jamdict()
-PROFILE_HOME = os.path.expanduser("~/.local/share/Anki2/User 1") 
 print()
 try:
     conn = create_connection("tatoeba/japTatoeba.db")
@@ -174,7 +175,7 @@ except:
     print("Connection to sentence database failed.")
 
 
-with open('newCards.txt') as csv_file:
+with open('newCards.txt', encoding='utf-8') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     line_count = 0
     new_source = 1
@@ -183,9 +184,9 @@ with open('newCards.txt') as csv_file:
             FE = row[0]
             new_source = 0
         else:
-            try:
+            if row:
                 words.append(Word(row[0],row[1],FE))
-            except:
+            else:
                 new_source = 1
         line_count += 1
     print()
