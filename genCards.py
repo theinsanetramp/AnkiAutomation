@@ -154,10 +154,10 @@ class Word:
             print()
         else:
             if self.exJap:
-                tts = gTTS(self.exJap, "ja") 
+                tts = gTTS(self.exJap, lang="ja") 
                 tts.save(PROFILE_HOME+'/collection.media/'+self.audio)
             else:
-                tts = gTTS(self.japanese, "ja") 
+                tts = gTTS(self.japanese, lang="ja") 
                 tts.save(PROFILE_HOME+'/collection.media/'+self.audio)
         self.audio = '[sound:' + self.audio + ']'
 
