@@ -67,7 +67,7 @@ else:
     print()
 
     for word in words:
-        if not col.findNotes('deck:GenTest "Target Japanese Word":'+word.japanese):
+        if not col.findNotes('deck:GenTest *Word:'+word.japanese):
             # Instantiate the new note
             note = col.newNote()
             note.model()['did'] = deck['id']
