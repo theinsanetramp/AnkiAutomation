@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "ankiautomation"
+version = "0.1.0"
+description = ""
+authors = ["Adam Melvin"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+jamdict = "^0.1a11"
+jamdict-data = "^1.5"
+gTTS = "^2.2.4"
+protobuf = "3.19.4"
+anki = "2.1.49"
+orjson = "^3.7.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,20 +1,21 @@
-import sys, os
+import os
 
 # Load Anki library
-sys.path.append("anki") 
 from anki.storage import Collection
-from anki.sched import Scheduler
 
 # Define the path to the Anki SQLite collection
-PROFILE_HOME = os.path.expanduser("~/.local/share/Anki2/User 1") 
+if os.name == "nt":
+    PROFILE_HOME = os.path.expandvars(r"%APPDATA%\Anki2\User 1") 
+else:
+    PROFILE_HOME = os.path.expanduser("~/.local/share/Anki2/User 1") 
 cpath = os.path.join(PROFILE_HOME, "collection.anki2")
 
 # Load the Collection
 col = Collection(cpath, log=True) # Entry point to the API
 
 # Use the available methods to list the notes
-for cid in col.findNotes('deck:GenTest'): 
-    note = col.getNote(cid)
+for cid in col.find_notes("deck:GenTest"): 
+    note = col.get_note(cid)
     print(note.fields[0], note.fields[1])
     print(note.fields[2])
     print(note.fields[3])

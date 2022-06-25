@@ -7,8 +7,11 @@ from gtts import gTTS
 # Allow audio files to be overwritten
 OVERWRITE_AUDIO = 0
 
-# User folder location
-PROFILE_HOME = os.path.expanduser("~/.local/share/Anki2/User 1") 
+# Define the path to the Anki SQLite collection
+if os.name == "nt":
+    PROFILE_HOME = os.path.expandvars(r"%APPDATA%\Anki2\User 1") 
+else:
+    PROFILE_HOME = os.path.expanduser("~/.local/share/Anki2/User 1") 
 
 class Word:
     def __init__(self, japanese, reading, firstEnc):

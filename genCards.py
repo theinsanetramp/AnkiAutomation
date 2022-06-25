@@ -1,9 +1,10 @@
 # System includes
-import sys, os
+import os
 import csv
-import re
-import webbrowser
-from anki import Collection
+from anki.storage import Collection
+from anki.models import NotetypeDict
+from anki.decks import DeckId
+from anki.notes import Note
 
 # Project includes
 import word as wd
@@ -57,20 +58,25 @@ else:
     # Load the Collection
     col = Collection(cpath, log=True) # Entry point to the API
 
-    # Set the model
-    modelBasic = col.models.byName('NihongoShark.com: My Vocabulary')
-    col.decks.current()['mid'] = modelBasic['id']
+    # Get the model
+    modelBasic: NotetypeDict = col.models.by_name('NihongoShark.com: My Vocabulary')
+    if not modelBasic:
+        print("Could not get card template (model)")
+        exit(1)
 
-    # Get the deck
-    deck = col.decks.byName("GenTest")
+    # Get the deck ID
+    deck_id: DeckId = col.decks.id_for_name("GenTest")
+    if not deck_id:
+        print("Could not get GenTest deck ID")
+        exit(1)
+
     doneCards = 0
     print()
 
     for word in words:
-        if not col.findNotes('deck:GenTest *Word:'+word.japanese):
+        if len(col.find_notes("deck:GenTest *Word:" + word.japanese)) == 0:
             # Instantiate the new note
-            note = col.newNote()
-            note.model()['did'] = deck['id']
+            note: Note = col.new_note(modelBasic)
 
             note.fields[0] = word.japanese 
             note.fields[1] = word.reading
@@ -80,7 +86,7 @@ else:
             note.fields[5] = word.firstEnc
             note.fields[6] = word.audio
 
-            col.addNote(note)
+            col.add_note(note, deck_id)
             doneCards += 1
         else:
             print(word.japanese, "already exists in deck - card not loaded")
