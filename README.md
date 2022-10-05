@@ -35,7 +35,7 @@ Kanji,Kana
 Kanji,Kana
 ```
 
-If you wish to add a word that doesn't use kanji then simply ommit the kanji field (keeping the comma, i.e., `,Kana`). Be careful that you are using the exact same type of comma as in these instructions and that there is a empty line between the final word from one word origin and the line containing the next wrod origin.
+If you wish to add a word that doesn't use kanji then simply omit the kanji field (keeping the comma, i.e., `,Kana`). Make sure that you are using the exact same type of comma as in these instructions and that there is a empty line between the final word from one origin and the line containing the next origin.
 
 As an example, if I wanted to make flashcards for 遅刻 and ヘルシー, which I first encountered while reading Made in Abyss, and 自動, which I first encountered while reading よつばと, I would edit `newCards.txt` to look like this:
 
@@ -54,7 +54,7 @@ To generate the flashcards you must first make sure that Anki isn't running, the
 poetry run python genCards.py
 ```
 
-Open Anki and check the `genTest` deck - the new flashcards should have been added there. It is worth checking through each flashcard to make sure the fields are correct - pay particular attention to the example sentences, as it can sometimes pick an incorrect sentence or not find one that uses the word at all. Once you are confident that the cards are correct, move them to your deck of choice for learning.
+Open Anki and check the `genTest` deck - the new flashcards should have been added there. It is worth checking through each flashcard to make sure the fields are correct. Pay particular attention to the example sentences, as it can sometimes pick an incorrect sentence or not find one that uses the word at all. Once you are confident that the cards are correct, move them to your deck of choice for learning.
 
 ## Regenerating the example sentence database
 
